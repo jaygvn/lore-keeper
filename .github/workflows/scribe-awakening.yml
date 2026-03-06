@@ -3,37 +3,28 @@ name: Cave Scribe Awakening
 on:
   issues:
     types: [opened, edited]
+  issue_comment:
+    types: [created]
 
 jobs:
   scribe-reflection:
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       issues: write
-      contents: read
+      pull-requests: write
+      actions: write  # Crucial for 2026 agentic stability
+    
     steps:
-      - name: Checkout Repository
+      - name: Checkout Sacred Pond
         uses: actions/checkout@v4
 
-      - name: Summon the Scribe via Gemini
-        uses: actions/github-script@v7
+      - name: Summon the Scribe
+        # Using the specific verified 2026 Technical Preview tag
+        uses: github/gh-aw@v1.0.12
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            // Check if the Scribe's soul exists
-            const agentPath = '.github/agents/cave-scribe.agent.md';
-            if (!fs.existsSync(agentPath)) {
-              throw new Error("The Scribe's soul file is missing at " + agentPath);
-            }
-            
-            const agentLore = fs.readFileSync(agentPath, 'utf8');
-            const issueBody = context.payload.issue.body;
-            
-            // This wakes the Scribe and asks for a reflection
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: "The Scribe has felt a ripple in the pond. Genesis is active. \n\n" + 
-                    "> *Scribe's Reflection: The water is cold, but the light of Gemini is steady.*"
-            });
+          agent-file: '.github/agents/cave-scribe.agent.md'
+          engine: 'google-gemini'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
