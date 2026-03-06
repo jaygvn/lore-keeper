@@ -16,7 +16,6 @@ jobs:
     permissions:
       issues: write
       contents: read
-      pull-requests: write
     steps:
       - name: Checkout Sacred Pond
         uses: actions/checkout@v4
@@ -31,13 +30,15 @@ jobs:
           npm install @google/generative-ai
           npm install @octokit/rest
 
+      - name: List files (debug step)
+        run: |
+          echo "📂 Checking files:"
+          ls -la .github/scripts/ || echo "scripts folder not found"
+          ls -la .github/agents/ || echo "agents folder not found"
+
       - name: Awaken the Cave Scribe
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          COMMENT_USER: ${{ github.event.comment.user.login }}
           MANUAL_MESSAGE: ${{ github.event.inputs.message }}
-          AGENT_FILE: '.github/agents/cave-scribe.agent.md'
         run: node .github/scripts/awaken-scribe.js
