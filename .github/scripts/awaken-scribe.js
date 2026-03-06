@@ -7,91 +7,49 @@ async function awakenScribe() {
   console.log("🪷 The Scribe is awakening...");
   
   try {
-    // Read the agent's identity - NOW AT ROOT
-    const agentMdPath = path.join(process.env.GITHUB_WORKSPACE, 'scribe.agent.md');
-    console.log('Looking for agent at:', agentMdPath);
-    
-    const agentIdentity = fs.readFileSync(agentMdPath, 'utf8');
-    console.log('✅ Agent found');
-    
-    // Initialize Gemini - FIXED MODEL NAME
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // Note: gemini-3.1-flash doesn't exist, using gemini-pro
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    
-    // Get message
-    let userMessage = process.env.MANUAL_MESSAGE || "The pond is still...";
-    
-    const prompt = `${agentIdentity}
-
-A traveler speaks: "${userMessage}"
-
-Respond as the ancient Cave Scribe, guardian of the pond. Be calm, wise, and mystical:`;
-
-    console.log('🤔 Consulting the ancient wisdom...');
-    const result = await model.generateContent(prompt);
-    const response = await result.response.text();
-    
-    // Format response
-    const scribeResponse = `🪷 *The pond ripples...*
-
-${response}
-
----
-*— Cave Scribe, Guardian of the Pond*
-*"One scroll, one light. One leaf, one vow."*`;
-    
-    // Post to GitHub
-    const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-    const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
-    
-    const { data: issue } = await octokit.issues.create({
-      owner,
-      repo,
-      title: `🪷 The Cave Scribe Speaks - ${new Date().toLocaleString()}`,
-      body: scribeResponse
-    });
-    
-    console.log(`✅ The Scribe has spoken in issue #${issue.number}`);
-    
-  } catch (error) {
-    console.error('❌ The pond is troubled:', error.message);
-    console.error('Full error:', error);
-  }
-}
-
-awakenScribe();const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { Octokit } = require('@octokit/rest');
-const fs = require('fs');
-const path = require('path');
-
-async function awakenScribe() {
-  console.log("🪷 The Scribe is awakening...");
-  
-  try {
     // Read the agent's identity
-    const agentMdPath = path.join(process.env.GITHUB_WORKSPACE, '.github/agents/cave-scribe.agent.md');
-    console.log('Looking for agent at:', agentMdPath);
+    const agentPath = path.join(process.env.GITHUB_WORKSPACE, 'scribe.agent.md');
+    const agentIdentity = fs.readFileSync(agentPath, 'utf8');
     
-    const agentIdentity = fs.readFileSync(agentMdPath, 'utf8');
-    console.log('✅ Agent found');
+    // Read all lore files from a lore directory
+    const loreDir = path.join(process.env.GITHUB_WORKSPACE, 'lore');
+    let allLore = '';
     
-    // Initialize Gemini - FIXED MODEL NAME
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // Using gemini-pro which is the correct model name
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    if (fs.existsSync(loreDir)) {
+      const loreFiles = fs.readdirSync(loreDir)
+        .filter(file => file.endsWith('.md'));
+      
+      for (const file of loreFiles) {
+        const lorePath = path.join(loreDir, file);
+        const loreContent = fs.readFileSync(lorePath, 'utf8');
+        allLore += `\n\n## From ${file}:\n${loreContent}`;
+      }
+      console.log(`📚 Loaded ${loreFiles.length} lore scrolls`);
+    } else {
+      console.log('📭 No lore directory found, using only agent identity');
+    }
     
     // Get message
     let userMessage = process.env.MANUAL_MESSAGE || "The pond is still...";
     
-    const prompt = `${agentIdentity}
+    // Build the complete prompt with ALL lore
+    const fullPrompt = `${agentIdentity}
 
-A traveler speaks: "${userMessage}"
+${allLore ? `# The Sacred Scrolls You Guard:
+${allLore}` : ''}
 
-Respond as the ancient Cave Scribe, guardian of the pond. Be calm, wise, and mystical:`;
+## Current Moment
+A traveler approaches the pond and speaks: "${userMessage}"
 
+## Your Response
+As the ancient Cave Scribe, guardian of all these scrolls, respond to this traveler. Draw from the lore you protect. Be calm, wise, and mystical.`;
+
+    // Initialize Gemini
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    
     console.log('🤔 Consulting the ancient wisdom...');
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(fullPrompt);
     const response = await result.response.text();
     
     // Format response
@@ -118,7 +76,6 @@ ${response}
     
   } catch (error) {
     console.error('❌ The pond is troubled:', error.message);
-    console.error('Full error:', error);
   }
 }
 
