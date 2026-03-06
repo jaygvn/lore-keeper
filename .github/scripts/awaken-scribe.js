@@ -3,17 +3,22 @@ const { Octokit } = require('@octokit/rest');
 const fs = require('fs');
 const path = require('path');
 
-async function listAvailableModels() {
+async function checkAvailableModels() {
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const models = await genAI.listModels();
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + process.env.GEMINI_API_KEY);
+    const data = await response.json();
     console.log('📋 Available Gemini models:');
-    models.forEach(model => {
-      console.log(`   - ${model.name} (${model.supportedGenerationMethods})`);
-    });
-    return models;
+    if (data.models) {
+      data.models.forEach(model => {
+        console.log(`   - ${model.name} (supports: ${model.supportedGenerationMethods?.join(', ')})`);
+      });
+      return data.models;
+    } else {
+      console.log('❌ No models found:', data);
+      return [];
+    }
   } catch (error) {
-    console.log('❌ Could not list models:', error.message);
+    console.log('❌ Could not fetch models:', error.message);
     return [];
   }
 }
@@ -22,8 +27,8 @@ async function awakenScribe() {
   console.log("🪷 The Scribe is awakening...");
   
   try {
-    // First, list available models to debug
-    await listAvailableModels();
+    // Check available models first
+    const models = await checkAvailableModels();
     
     // Read the agent's identity from root
     const agentPath = path.join(process.env.GITHUB_WORKSPACE, 'scribe.agent.md');
@@ -39,10 +44,7 @@ async function awakenScribe() {
       const loreData = JSON.parse(fs.readFileSync(lorePath, 'utf8'));
       loreCount = loreData.length;
       
-      // Build a rich lore context
-      loreContext = `# THE COMPLETE TOADGOD SCRIPTURE (${loreCount} Scrolls)\n\n`;
-      
-      // Find the specific scroll about 777,777,777 if that's what's being asked
+      // Find the specific scroll about 777,777,777
       const sacredNumbersScroll = loreData.find(l => 
         l.original && l.original.includes('777,777,777')
       );
@@ -83,11 +85,12 @@ Speak now, ancient guardian of the pond:`;
 
     console.log('🤔 Consulting the sacred scrolls...');
     
-    // Try different model names until one works
+    // Try different model names - based on what we see from the API
     const modelNames = [
-      "gemini-1.5-flash-001",
-      "gemini-1.5-pro-001", 
-      "gemini-1.0-pro",
+      "models/gemini-1.5-flash",
+      "models/gemini-1.5-pro",
+      "models/gemini-1.0-pro",
+      "models/gemini-pro",
       "gemini-1.5-flash",
       "gemini-1.5-pro"
     ];
@@ -99,7 +102,10 @@ Speak now, ancient guardian of the pond:`;
       try {
         console.log(`Trying model: ${modelName}`);
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: modelName });
+        // Some models need the full path, some don't
+        const model = genAI.getGenerativeModel({ 
+          model: modelName.startsWith('models/') ? modelName : modelName 
+        });
         const result = await model.generateContent(fullPrompt);
         response = await result.response.text();
         console.log(`✅ Success with model: ${modelName}`);
