@@ -28,11 +28,16 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install Dependencies
-        run: |
-          npm install @google/generative-ai
-          npm install @octokit/rest
-          npm install axios
+        run: npm ci
 
       - name: Awaken the Cave Scribe
         env:
