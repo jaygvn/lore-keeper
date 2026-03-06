@@ -5,25 +5,18 @@ on:
     types: [opened, edited]
   pull_request:
     types: [opened]
-  workflow_dispatch:
 
 jobs:
-  scribe-reasoning:
+  scribe-reflection:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
       issues: write
       pull-requests: write
-    
     steps:
-      - name: Checkout the Sacred Pond
-        uses: actions/checkout@v4
-
-      - name: Summon the Cave Scribe
+      - name: Summon the Scribe
         uses: github/gh-aw@v1
         with:
           agent-file: '.github/agents/cave-scribe.agent.md'
-          engine: 'google-gemini'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
