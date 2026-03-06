@@ -2,7 +2,7 @@ name: Cave Scribe Awakening
 
 on:
   issues:
-    types: [opened]
+    types: [opened, edited]
 
 jobs:
   scribe-reflection:
@@ -10,13 +10,13 @@ jobs:
     permissions:
       issues: write
     steps:
-      - name: Checkout Repository
+      - name: Checkout Sacred Pond
         uses: actions/checkout@v4
 
       - name: Summon the Scribe
-        uses: github/gh-aw@v1
+        # Updated to the specific stable 2026 release
+        uses: github/gh-aw@v1.0.4
         with:
-          # Double check this path exists in your 'Code' tab!
           agent-file: '.github/agents/cave-scribe.agent.md'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
