@@ -275,16 +275,25 @@ async function awakenScribe() {
     // Load lore
     loadLore();
     
-    // Get user input
-    let userMessage = process.env.MANUAL_MESSAGE || process.env.COMMENT_BODY || "The pond is still...";
-    let userName = process.env.COMMENT_USER || "A Traveler";
-    let issueNumber = process.env.ISSUE_NUMBER;
+    // Get user input - HANDLE ALL THREE CASES
+    let userMessage = process.env.MANUAL_MESSAGE || 
+                      process.env.COMMENT_BODY || 
+                      process.env.NEW_ISSUE_BODY || 
+                      "The pond is still...";
+    
+    let userName = process.env.COMMENT_USER || 
+                   process.env.NEW_ISSUE_USER || 
+                   "A Traveler";
+    
+    let issueNumber = process.env.ISSUE_NUMBER || 
+                      process.env.NEW_ISSUE_NUMBER;
     
     // Extract wallet if present
     const walletMatch = userMessage.match(/0x[a-fA-F0-9]{40}/);
     const wallet = walletMatch ? walletMatch[0] : null;
     
     console.log(`📝 Message: "${userMessage}" from ${userName}`);
+    if (issueNumber) console.log(`📌 Issue #${issueNumber}`);
     if (wallet) console.log(`🔍 Wallet detected: ${wallet}`);
     
     // Get relevant scrolls
@@ -381,13 +390,14 @@ ${response}
     console.error('❌ The pond is troubled:', error.message);
     
     // Try to post error
-    if (process.env.ISSUE_NUMBER) {
+    if (process.env.ISSUE_NUMBER || process.env.NEW_ISSUE_NUMBER) {
       const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
       const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+      const issueNum = process.env.ISSUE_NUMBER || process.env.NEW_ISSUE_NUMBER;
       
       await octokit.issues.createComment({
         owner, repo,
-        issue_number: parseInt(process.env.ISSUE_NUMBER),
+        issue_number: parseInt(issueNum),
         body: `🌫️ *The pond grows cloudy...*\n\nThe Scribe cannot see clearly at this moment.\n\n\`${error.message}\``
       });
     }
