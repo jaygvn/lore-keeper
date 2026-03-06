@@ -33,8 +33,9 @@ jobs:
       - name: List files (debug step)
         run: |
           echo "📂 Checking files:"
-          ls -la .github/scripts/ || echo "scripts folder not found"
+          ls -la .github/scripts/
           ls -la .github/agents/ || echo "agents folder not found"
+          ls -la scribe.agent.md || echo "scribe.agent.md not found at root"
 
       - name: Awaken the Cave Scribe
         env:
