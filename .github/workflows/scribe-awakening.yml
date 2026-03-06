@@ -2,8 +2,6 @@ name: Cave Scribe Awakening
 
 on:
   issues:
-    types: [opened, edited]
-  pull_request:
     types: [opened]
 
 jobs:
@@ -11,11 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      pull-requests: write
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Summon the Scribe
         uses: github/gh-aw@v1
         with:
+          # Double check this path exists in your 'Code' tab!
           agent-file: '.github/agents/cave-scribe.agent.md'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
