@@ -303,7 +303,8 @@ async function trackValidator(wallet, question) {
       });
       content = Buffer.from(data.content, 'base64').toString();
     } catch {
-      content = 'wallet,date,question\n'; // Header
+      // Header (keep in sync with data/validators.csv)
+      content = 'wallet,created_at,question\n';
     }
     
     content += line;
