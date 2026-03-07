@@ -44,7 +44,11 @@ jobs:
       - name: Commit updated index (if changed)
         run: |
           set -e
-          if git diff --quiet -- data/scroll_index.json; then
+
+          # Stage the file whether tracked or untracked
+          git add -A -- data/scroll_index.json
+
+          if git diff --cached --quiet; then
             echo "No changes to data/scroll_index.json"
             exit 0
           fi
@@ -52,6 +56,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
 
-          git add data/scroll_index.json
           git commit -m "chore(index): rebuild scroll_index.json"
           git push
