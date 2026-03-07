@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a problem with the Cave Scribe or workflow
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      placeholder: "Describe the bug. Include issue/run links if possible."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: "What should have happened?"
+    validations:
+      required: true
+
+  - type: input
+    id: run
+    attributes:
+      label: Actions run URL (optional)
+      placeholder: "https://github.com/.../actions/runs/..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I did not paste any secrets.
+          required: true

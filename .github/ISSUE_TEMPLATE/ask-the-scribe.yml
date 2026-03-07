@@ -1,0 +1,48 @@
+name: Ask the Cave Scribe
+description: Ask a lore question (the Scribe replies automatically)
+title: "[Lore Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The Cave Scribe answers from the sacred scrolls.
+
+        Tip: be specific. If you can, mention the term/scroll/epoch/rune you're asking about.
+
+  - type: input
+    id: topic
+    attributes:
+      label: Topic (optional)
+      description: e.g. Epochs, Runes, Taboshi, Patience, Proof of Time, Sacred Numbers
+      placeholder: "Epochs / Runes / Taboshi / Patience / ..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: The Scribe will respond with Signal / Reflection / Sources.
+      placeholder: "What was Toadgod's last signal?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: Add any extra detail or the exact quote you're referencing.
+      placeholder: "Paste a quote or short excerpt here (optional)."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Quick checks
+      options:
+        - label: I did not paste any private keys, seed phrases, or API keys.
+          required: true
+        - label: I understand this agent is for lore/reflection, not price predictions.
+          required: true
